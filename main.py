@@ -58,4 +58,4 @@ if __name__ == "__main__":
         images = list(Path(args.image_directory).glob("*.png")) + list(Path(args.image_directory).glob("*.jpg")) + list(Path(args.image_directory).glob("*.jpeg"))
         print(f"Comparing all images in directory: {args.image_directory}, found {len(images)} images.")
     
-    compare_images(images)
+    matches = compare_images(images)

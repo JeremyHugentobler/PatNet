@@ -1,6 +1,8 @@
 
-from segmentation import get_all_masks
 from tqdm import tqdm
+from sam3.sam3.visualization_utils import show_mask
+from segmentation import get_all_masks
+from shape_analysis import get_elliptic_fourier_descriptors_complexity, get_distance
 
 
 def compare_images(images):
@@ -15,6 +17,7 @@ def compare_images(images):
     # Visual indication of the progress
     pbar = tqdm(total=n_comp, desc="Comparing images")
     
+    matches = []
     for i in range(n_images):
         for j in range(i+1, n_images):
             img1_path = images[i]
@@ -24,12 +27,18 @@ def compare_images(images):
             img1, masks1 = all_masks[img1_path]
             img2, masks2 = all_masks[img2_path]
             
+            coeffs1, coeffs2, complexity1, complexity2 = get_elliptic_fourier_descriptors_complexity(masks1, masks2)
+            distances = get_distance(coeffs1, coeffs2, complexity1, complexity2)
             
-            
-            
+            if distances:
+                print(distances[0][0])
+
+                if distances[0][0]<0.13:
+                    show_mask(img1, masks1[distances[0][1]])
+                    show_mask(img2, masks2[distances[0][2]])
+                    matches.append((img1_path, img2_path, distances[0][0]))
             
             pbar.update(1)
-            
-    pbar.close()
     
-    pass
+    pbar.close()
+    return matches
