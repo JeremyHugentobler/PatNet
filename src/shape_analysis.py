@@ -107,19 +107,15 @@ def combined_complexity(mask):
 def find_contours(mask):
 
     # Ensure the mask is a single-channel binary image (0 or 1)
-    processed_mask = np.asarray(mask).squeeze()
-    if processed_mask.ndim == 3 and processed_mask.shape[-1] == 3:
-        # If it's a 3-channel image, take the first channel
-        processed_mask = processed_mask[:, :, 0]
-    processed_mask = processed_mask.astype(np.uint8)
+    
 
 
-    contours, _ = cv2.findContours(processed_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(mask[0].astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     if not contours:
         return []
     largest_contour = max(contours, key=cv2.contourArea)
-    return [np.vstack(contours)] # Return as a list containing only the largest contour
+    return [largest_contour] # Return as a list containing only the largest contour
 
 def get_elliptic_fourier_descriptors_complexity(skimage_masks, skimage_masks2):
 
@@ -166,7 +162,7 @@ def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
   for j in range(len(coeffs1)):
     l = []
 
-    if complexity1[j]>0.74 or eomt:
+    if complexity1[j]>0.72 or eomt:
 
       for i in coeffs1[j]:
 
@@ -179,10 +175,10 @@ def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
   for j in range(len(coeffs2)):
     l = []
 
-    if complexity2[j]>0.74 or eomt:
+    if complexity2[j]>0.72 or eomt:
       for i in coeffs2[j]:
         a = np.array(i)
-        a[np.abs(a)<0.005]=0
+        a[np.abs(a)<0.01]=0
 
 
         l.append(a)
@@ -192,7 +188,7 @@ def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
     for i in coeffs1[complexity1.index(max(complexity1))]:
       a = np.array(i)
 
-      a[np.abs(a)<0.005]=0
+      a[np.abs(a)<0.01]=0
 
       l.append(a)
     coeffsfiltered1.append((np.concatenate(l, axis=0), j))
