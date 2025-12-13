@@ -13,10 +13,12 @@ def check_huggingface_auth():
     try:
         user = whoami()
         print(f"[HuggingFace] Authenticated as {user['name']}")
+        return True
         
     except:
         print("[HuggingFace] Not authenticated. Please login to Hugging Face.")
         login()
+        return False
         
     print("---"*20)
     

@@ -5,11 +5,10 @@ from scipy import ndimage
 from tqdm import tqdm
 
 # SAM3 imports
-from sam3.sam3 import build_sam3_image_model, model
-from sam3.sam3.model.sam3_image_processor import Sam3Processor
+from sam3 import build_sam3_image_model, model
+from sam3.model.sam3_image_processor import Sam3Processor
 
 SAM3_SEG_PROMPT = "humans"
-
 
 def get_all_masks(image_list):
     """Given a list of image path, it generates all the mask with SAM3 and a prompt

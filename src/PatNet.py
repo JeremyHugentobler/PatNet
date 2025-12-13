@@ -1,8 +1,8 @@
 
 from tqdm import tqdm
-from sam3.sam3.visualization_utils import show_mask
-from segmentation import get_all_masks
-from shape_analysis import get_elliptic_fourier_descriptors_complexity, get_distance
+from sam3.visualization_utils import show_mask
+from src.segmentation import get_all_masks
+from src.shape_analysis import get_elliptic_fourier_descriptors_complexity, get_distance
 
 
 def compare_images(images):
