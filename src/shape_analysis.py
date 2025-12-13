@@ -163,7 +163,6 @@ def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
   coeffsfiltered1 =[]
   coeffsfiltered2 =[]
 
-  print(len(coeffs1))
   for j in range(len(coeffs1)):
     l = []
 

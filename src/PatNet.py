@@ -33,12 +33,8 @@ def compare_images(images):
             if distances:
 
                 if distances[0][0]<0.13:
-                    
-                    # We'll just show it at the end                    
-                    # show_mask(img1, masks1[distances[0][1]])
-                    # show_mask(img2, masks2[distances[0][2]])
-                    
-                    matches.append((img1_path, img2_path, distances[0][0]))
+                                        
+                    matches.append((img1_path, img2_path, distances[0][0], img1, masks1[distances[0][1]], img2, masks2[distances[0][2]]))
             
             pbar.update(1)
     
