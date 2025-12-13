@@ -1,7 +1,7 @@
 
 from tqdm import tqdm
-from sam3.visualization_utils import show_mask
 from src.segmentation import get_all_masks
+from src.segmentation import show_single_mask as show_mask
 from src.shape_analysis import get_elliptic_fourier_descriptors_complexity, get_distance
 
 
@@ -31,11 +31,12 @@ def compare_images(images):
             distances = get_distance(coeffs1, coeffs2, complexity1, complexity2)
             
             if distances:
-                print(distances[0][0])
 
                 if distances[0][0]<0.13:
+                    
                     show_mask(img1, masks1[distances[0][1]])
                     show_mask(img2, masks2[distances[0][2]])
+                    
                     matches.append((img1_path, img2_path, distances[0][0]))
             
             pbar.update(1)

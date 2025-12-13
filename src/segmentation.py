@@ -65,3 +65,16 @@ def show_single_mask(image, mask):
   r = image * label3
   plt.imshow(r)
   plt.show()
+  
+  
+def show_match(image1, mask1, image2, mask2):
+    # We want to display on a single figure per match the two image side by side, where the background is a bit darkened
+    label3_1 = np.stack([mask1[0],mask1[0],mask1[0]], axis=2)
+    label3_2 = np.stack([mask2[0],mask2[0],mask2[0]], axis=2)
+    r1 = image1 * label3_1 + image1 * (1-label3_1) * 0.3
+    r2 = image2 * label3_2 + image2 * (1-label3_2) * 0.3
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    axs[0].imshow(r1)
+    axs[1].imshow(r2)
+    plt.show()
+    
