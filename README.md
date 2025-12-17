@@ -14,9 +14,9 @@ You can give as input a list of pictures, that will be passed to SAM3's prompt b
 ## The pipeline
 
 1. You give as input a list of image to compare
-2. Sam3 is used to compute the masks that segment human instances on the image (panoptic -> one mask per human). We use the text prompting feature of the model to get those segmentations.
-3. Each mask pair of mask is then compared by our contour analysis pipeline that is based on fourier descriptors (more details in the written wiki)
-4. The code the pairs of associated image where a link has been found.
+2. [Sam3](https://huggingface.co/facebook/sam3) is used to compute the masks that segment human instances on the image (panoptic -> one mask per human). We use the text prompting feature of the model to get those segmentations.
+3. Each mask pair of mask is then compared by our contour analysis pipeline that compares the boundaries of the masked region.
+4. The code returns the pairs of associated image where a link has been found.
 5. (Bonus) We also included a notebook that uses DinoV3 to showcase visually links inside of masked regions of images. We could not find a way to properly include it in the pipeline and extract a coherent score out of it, but could be a good visual validation tool.
 
 The result of this pipeline can be seen in the [colab notebook](./colab.ipynb)
