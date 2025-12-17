@@ -1,11 +1,13 @@
 # PatNet
-
 This is the repository for our project for the course "Foundations of digital humanities" (DH405) at EPFL.
+
 
 You can find the wiki related to this project [here](https://fdh.epfl.ch/index.php/Pattern_Networks_in_Art_History).
 
 ## Concept
 The goal is to be able to find morphological links between paintings based on the shape of extracted humans.
+
+<img width="775" height="434" alt="image" src="https://github.com/user-attachments/assets/1e3e76b0-0890-4491-a2d0-84e88d8251aa" />
 
 You can give as input a list of pictures, that will be passed to SAM3's prompt based segmentor to retrieve the candidate masks, which are then compared among each others using contour analysis.
 
@@ -15,7 +17,9 @@ You can give as input a list of pictures, that will be passed to SAM3's prompt b
 2. Sam3 is used to compute the masks that segment human instances on the image (panoptic -> one mask per human). We use the text prompting feature of the model to get those segmentations.
 3. Each mask pair of mask is then compared by our contour analysis pipeline that is based on fourier descriptors (more details in the written wiki)
 4. The code the pairs of associated image where a link has been found.
-5. (Bonus) We also included a notebook that uses DinoV3 to showcase visually links inside of masked regions of images. We could not find a way to properly include it in the pipeline and extract a coherent score out of it, but could be a good visual validation tool. 
+5. (Bonus) We also included a notebook that uses DinoV3 to showcase visually links inside of masked regions of images. We could not find a way to properly include it in the pipeline and extract a coherent score out of it, but could be a good visual validation tool.
+
+The result of this pipeline can be seen in the [colab notebook](./colab.ipynb)
 
 ## Running the code
 > We highly recommend to run the code on google colab.
