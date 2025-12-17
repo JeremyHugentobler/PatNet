@@ -14,24 +14,38 @@ FFT_MEASURE_MAX = np.sqrt(np.power(0.5, 2) + np.power(0.5, 2))
 
 
 def compression_measure(
-    np_img,
-    fill_ratio_norm=False,
+    np_img
+    
 ) -> tuple[float, Optional[Tensor]]:
+  """Get the shape complexity of an image using the compression measure 
 
-    np_img_bytes = np_img.tobytes()
-    compressed = compress(np_img_bytes)
+  Args:
+      np_img (np.array): image represented as a numpy array
+      
 
-    complexity = len(compressed) / len(np_img_bytes)
+  Returns:
+      tuple[float, Optional[Tensor]]: compression measure
+  """
 
-    if fill_ratio_norm:
-        fill_ratio = np_img.sum().item() / np.ones_like(np_img).sum().item()
-        return complexity * (1 - fill_ratio), None
+  np_img_bytes = np_img.tobytes()
+  compressed = compress(np_img_bytes)
 
-    return complexity, None
+  complexity = len(compressed) / len(np_img_bytes)
+
+
+  return complexity, None
 
 
 def fft_measure(np_img):
+    """Get the shape complexity of an image using the FFT measure 
 
+  Args:
+      np_img (np.array): image represented as a numpy array
+      
+
+  Returns:
+      tuple[float, Optional[Tensor]]: FFT measure
+  """
     np_img_2d = np_img.squeeze() # Ensure the image is 2D
     fft = np.fft.fft2(np_img_2d)
 
@@ -63,70 +77,61 @@ def fft_measure(np_img):
     return mean_freq / FFT_MEASURE_MAX, None
 
 
-def vae_reconstruction_measure(
-    img: Tensor,
-    model_gb: nn.Module,
-    model_lb: nn.Module,
-    fill_ratio_norm=False,
-) -> tuple[float, Optional[Tensor]]:
-    model_gb.eval()
-    model_lb.eval()
 
-    with torch.no_grad():
-        mask = img.to(model_gb.device)  # type: ignore
-
-        recon_gb: Tensor
-        recon_lb: Tensor
-
-        recon_gb, _, _ = model_gb(mask)
-        recon_lb, _, _ = model_lb(mask)
-
-        abs_px_diff = (recon_gb - recon_lb).abs().sum().item()
-
-        complexity = abs_px_diff / mask.sum()
-
-        if fill_ratio_norm:
-            complexity *= mask.sum().item() / torch.ones_like(mask).sum().item()
-
-        return (
-            complexity,
-            make_grid(
-                torch.stack(
-                    [mask[0], recon_gb.view(-1, 64, 64), recon_lb.view(-1, 64, 64)]
-                ).cpu(),
-                nrow=1,
-                padding=0,
-            ),
-        )
 
 
 def combined_complexity(mask):
+  """Combine the compression and fft measure of shape complexity into a single measure
+
+  Args:
+      mask (np.array)
+
+  Returns:
+      float: combined shape complexity measure
+  """
   return (compression_measure(mask)[0] + 0.025*fft_measure(mask)[0])*100
 
 
 def find_contours(mask):
+  """get the largest (opencv) contour for a given mask
 
-    # Ensure the mask is a single-channel binary image (0 or 1)
+  Args:
+      mask (np.array)
+
+  Returns:
+      list: the largest contour obtained
+  """
+   
     
+  #find the countours of the mask
+  contours, _ = cv2.findContours(mask[0].astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-
-    contours, _ = cv2.findContours(mask[0].astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    if not contours:
+  if not contours:
         return []
-    largest_contour = max(contours, key=cv2.contourArea)
-    return [largest_contour] # Return as a list containing only the largest contour
+  #get the largest contour in terms of area
+  largest_contour = max(contours, key=cv2.contourArea)
+  return [largest_contour] # Return as a list containing only the largest contour
 
 def get_elliptic_fourier_descriptors_complexity(skimage_masks, skimage_masks2):
+  """Get the elliptic fourier desciptor and shape complexity for the masks of two given images
 
+  Args:
+      skimage_masks (np.array): list of masks
+      skimage_masks2 (np.array): list of masks
+  Returns:
+     Tuple  :coeffs1 (list), coeffs2 (list), complexity1 (list), complexity2 (list) : 
+     the lists of  elliptic fourier desciptors and shape complexity measures for both images
+  """
   # Get contours for the selected masks
   contours1 = []
   contours2 = []
   complexity1 = []
   complexity2 = []
-
+  
   for mask in skimage_masks:
+    #get the largest contour
       l_contours = find_contours(mask)
+    #get the complexity
       complexity1.append(combined_complexity(mask))
       if l_contours:
           contours1.extend(l_contours)
@@ -142,7 +147,7 @@ def get_elliptic_fourier_descriptors_complexity(skimage_masks, skimage_masks2):
       coeffs1 = []
       coeffs2 = []
       for contour in contours1:
-
+          #using the contour, get the EFD for all masks in the list of contours
           if(len(contour.squeeze())>2):
             coeffs1.append(elliptic_fourier_descriptors(contour.squeeze(), order=5, normalize=True))
       for contour in contours2:
@@ -154,20 +159,31 @@ def get_elliptic_fourier_descriptors_complexity(skimage_masks, skimage_masks2):
   return coeffs1, coeffs2, complexity1, complexity2
 
 
-def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
+def get_distance(coeffs1, coeffs2, complexity1, complexity2):
+  """Get the sorted list of pairwise distance between all masks in two images
 
+  Args:
+      coeffs1 (list): list of EFD
+      coeffs2 (list): list of EFD
+      complexity1 (list): list of shape complexity measure
+      complexity2 (list): _list of shape complexity measure
+      
+
+  Returns:
+      list: sorted list of Tuple (distance, index of mask of image 1, index of mask in image 2)
+  """
   coeffsfiltered1 =[]
   coeffsfiltered2 =[]
 
   for j in range(len(coeffs1)):
     l = []
-
-    if complexity1[j]>0.72 or eomt:
+    #keep only masks with a complexity above a certain threshold
+    if complexity1[j]>0.72 :
 
       for i in coeffs1[j]:
 
         a = np.array(i)
-
+        #filter out small values in EFD
         a[np.abs(a)<0.01]=0
 
         l.append(a)
@@ -175,7 +191,7 @@ def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
   for j in range(len(coeffs2)):
     l = []
 
-    if complexity2[j]>0.72 or eomt:
+    if complexity2[j]>0.72 :
       for i in coeffs2[j]:
         a = np.array(i)
         a[np.abs(a)<0.01]=0
@@ -183,6 +199,8 @@ def get_distance(coeffs1, coeffs2, complexity1, complexity2, eomt=False):
 
         l.append(a)
       coeffsfiltered2.append((np.concatenate(l, axis=0),j))
+  #if no masks are found that satisfy the complexity threshold, still 
+  #give the distance between the two masks with the highest complexity in each image
   if not coeffsfiltered1:
     l=[]
     for i in coeffs1[complexity1.index(max(complexity1))]:

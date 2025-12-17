@@ -38,6 +38,15 @@ def sam3_setup():
     return model, processor
 
 def get_mask(path, processor):
+  """Gets the masks for a given image using SAM3
+
+  Args:
+      path (str): path of the image 
+      processor (Sam3Processor): processor to get the image masks
+
+  Returns:
+     Tupple: image (PIL.Image), mask (np.array) : list of all masks obtained (list of lists of bools)
+  """
   image = Image.open(path)
   inference_state = processor.set_image(image)
   
@@ -52,15 +61,29 @@ def get_mask(path, processor):
 
 
 def show_masks(image, masks):
+  """ Display a list of masks on top of an image
+
+  Args:
+      image (PIL.Image)
+      masks (np.array): list of masks (list of list of bools)
+  """
   l = []
+  #add each mask on top of the image
   for mask in masks:
     label3 = np.stack([mask[0],mask[0],mask[0]], axis=2)
     l.append(image * label3)
+  #show each mask
   for i in l:
     plt.imshow(i)
     plt.show()
     
 def show_single_mask(image, mask):
+  """ Display a mask on top of an image
+
+  Args:
+      image (PIL.Image)
+      mask (np.array): the masks (lis of bools)
+  """
   label3 = np.stack([mask[0],mask[0],mask[0]], axis=2)
   r = image * label3
   plt.imshow(r)
@@ -68,6 +91,14 @@ def show_single_mask(image, mask):
   
   
 def show_match(image1, mask1, image2, mask2):
+  """Display two images with an associated mask each (used to display when a morphological link is found)
+
+  Args:
+      image1 (PIL.Image)
+      mask1 (np.array)
+      image2 (PIL.Image)
+      mask2 (np.array)
+  """
   image1 = np.array(image1)
   image2 = np.array(image2)
 
